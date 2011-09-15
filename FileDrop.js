@@ -207,6 +207,9 @@ var FileDrop = {
 
         this.filter = function(file) {
             var filter = true;
+            var f;
+            var disallowed_reasons = [];
+            var allowed_reasons = [];
             var i, rule, ok;
 
             var file_type = file.type.toLowerCase();
@@ -214,42 +217,66 @@ var FileDrop = {
 
 
             if(this.p.allow) {
+                filter = true;
                 for(i=0; i < this.p.allow.length; i++) {
-                    filter = true;
+                    f = true;
                     rule = this.p.allow[i];
                     if(rule.mime_type) {
                         if(file_type.match(rule.mime_type.toLowerCase())) {
-                            filter = false;
+                            allowed_reasons.push(rule);
+                            f = false;
                         }
                     }
                     if(rule.extension) {
                         if(file_name.match(rule.extension.toLowerCase())) {
-                            filter = false;
+                            if(f != false) {
+                                f = false;
+                                allowed_reasons.push(rule)
+                            }
                         } else {
                             filter = true;
                         }
+                    }
+                    if(!f) {
+                        filter = false;
                     }
                 }
             } else if(this.p.disallow) {
+                filter = false;
                 for(i=0; i < this.p.disallow.length; i++) {
-                    filter = false;
+                    f = false;
                     rule = this.p.disallow[i];
                     if(rule.mime_type) {
                         if(file_type.match(rule.mime_type.toLowerCase())) {
-                            filter = true;
+                            disallowed_reasons.push(rule);
+                            f = true;
                         }
                     }
                     if(rule.extension) {
                         if(file_name.match(rule.extension.toLowerCase())) {
-                            filter = true;
+                            if(f != true) {
+                                f = true;
+                                disallowed_reasons.push(rule);
+                            }
                         } else {
-                            filter = false;
+                            f = false;
                         }
+                    }
+                    if(f) {
+                        filter = true;
                     }
                 }
             } else {
                 return false;
             }
+
+            if(filter && this.on_disallowed_file) {
+                this.on_disallowed_file(file, disallowed_reasons);
+            }
+            if(!filter && this.on_allowed_file) {
+                this.on_allowed_file(file, allowed_reasons);
+            }
+
             return filter;
         };
                         

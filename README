@@ -77,7 +77,43 @@
 
   Callback API:
 
-    TODO
+    To use the FileDrop API, first instantiate:
+
+      var f = FileDrop.create(...);
+
+    The API is documented using commented examples:
+
+    /* 
+       Called when a file is disallowed based on allow or 
+       disallow rules. The rules variable is an array of 
+       the rules that triggered the disallow.
+       An empty array means that the file was disallowed
+       because the default is to disallow and no specific
+       allow rule matched.
+    */
+ 
+    f.on_disallowed_file = function(file, rules) {
+
+      console.log("File " + file.name + " was disallowed based on " + rules.length + " rules");
+
+    }
+
+    /* 
+       Called when a file is allowed based on allow or 
+       disallow rules. The rules variable is an array of 
+       the rules that triggered the allow.
+       An empty array means that the file was allowed
+       because the default is to allow and no specific
+       disallow rule matched.
+    */
+
+    f.on_allowed_file = function(file, rules) {
+
+      console.log("File " + file.name + " was allowed based on " + rules.length + " rules");
+
+    }
+
+    TODO more API to come.
 
   Filtering:
       
