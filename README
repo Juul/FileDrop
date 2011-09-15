@@ -99,7 +99,7 @@
 
     You can omit either mime_type or extension, but not both.
 
-    If the above rule like so:
+    If the above rule is used like so:
 
     FileDrop.create('droparea', {
 
