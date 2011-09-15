@@ -1,0 +1,114 @@
+  Introduction
+
+    This is a Javascript library for reading files into
+    browser memory and/or background uploading using
+    multi-file drag-drop.
+
+    This library makes use of HTML5/Javascript/CSS only.
+
+    Supported (tested) browsers so far:
+
+      Firefox 4 (3.6 may work but not tested)
+      Chrome 13 (earlier may work, but not tested)
+
+      Safari 5.1 on Mac OS:
+        File drag-drop and uploading works.
+        File reading (into js memory) does not work.
+
+      Safari 5.1 on Windows:
+        Tested and does NOT work.
+
+  Checking browser capabilities:
+
+    To check if FileDrop supports the current browser, run:
+
+      FileDrop.support();
+
+    It will return true if the browser is supported, and
+    false if it is not.
+
+    To check if file reading is supported use:
+
+      FileDrop.readSupport();
+
+    It will return true if file reading is supported for the
+    current browser, and false if not.
+
+    To check if background file uploading is supported use:
+
+      FileDrop.uploadSupport();
+
+    It will return true if uploading is supported for the
+    current browser, and false if not.
+
+  Basic usage:
+
+    Drag-drop file uploading can be activated for an html
+    element using:
+
+        FileDrop.create('my_element_id', {
+                        url: '/foo/upload',
+                        read_files: true,
+                        upload_files: true)
+
+    The file will be uploaded as if it was uploaded using
+    a good old-fashioned:
+
+      <form action='/foo/upload' method='POST'>
+        <input name='file' type='file' />
+        <input type='submit' value='Submit'>
+      </form>
+   
+    my_element_id is the id of the element to activate
+    as a file drop-zone.
+
+    The read_files parameter specifies that files should
+    be read into js memory when dropped onto the element.
+    
+    The upload_files parameter specifies that files should
+    be uploaded to the given url when dropped onto the
+    element.
+
+    At least one of these two parameters must be true in
+    order to use the FileDrop library. If one or both
+    of these parameters are specified, then the 
+    unspecified parameters will be set to true if the
+    browser supports them and false if not.
+
+  Callback API:
+
+    TODO
+
+  Filtering:
+      
+    You can specify either an allow or a disallow parameter.
+    You must not specify both.
+    These parameters are both an array of one or more rules.
+
+    If allow is specified, only files matching one or more 
+    of the rules are allowed.
+
+    If disallow is specified, only file matching one or more
+    of the rules are disallowed.
+
+    If not filters are specified, all files are allowed.
+
+    A rule is a hash that looks something lige e.g:
+
+      {mime_type: 'image/jpeg', extension: 'jpg'}
+
+    You can omit either mime_type or extension, but not both.
+
+    If the above rule like so:
+
+    FileDrop.create('droparea', {
+
+      allow: [
+        {mime_type: 'image/jpeg', extension: 'jpg'}
+      ]
+    });
+
+    Then only files with the image/jpeg mimetype and the
+    extension 'jpeg' will be allowed.
+
+    Extensions and mimetypes are matched case-insensitive.

@@ -1,0 +1,10 @@
+
+
+.filedrop {
+    border: 4px solid black;
+}
+
+.filedrop_over { 
+    border-color: red;
+}
+
