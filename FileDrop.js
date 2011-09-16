@@ -1,18 +1,17 @@
 /*
-
   TODO
-
-  Client side zip file handling.
-    Parameter to disable zip file handling.
-
-  Implement on_drop_hover as a callback and drop_hover_class (css class) as a parameter.
-
-  Get rid of non-API-based DOM modification.
 
   Document API.
 
   Add functions for extra parameters when uploading.
     Needed for associating multiple files in a file set.
+
+  Add mime-type detection and filtering for client-side extracted files.
+
+  A system for receiving information from the server about uploaded files, 
+  both multi-file and files contained in zip files.
+    This will be useful for large files that should not be loaded into
+    client side memory before uploading.
 
 ----
 
@@ -229,32 +228,33 @@ var FileDrop = {
             // TODO writme
         };
 
-        this.show = function(msg) {
-            if(!$(this.title_node_id) ||
-               !$(this.subtitle_node_id) ||
-               (msg.length != 2)) {
-                return false;
-            }
-            $(this.title_node_id).innerHTML = msg[0];
-            $(this.subtitle_node_id).innerHTML = msg[1];
-            return true;
-        };
-
         this.nop = function(e) {
             e.stopPropagation();
             e.preventDefault();
         };
 
         this.on_enter = function(e) {
-            Element.addClassName(this.node_id, 'filedrop_over');
-            this.show(["I see your files :)", "Now let them drop!"]);
+            if(this.p.hover_class) {
+                Element.addClassName(this.node_id, this.p.hover_class);
+            }
+
+            if(this.on_droparea_enter) {
+                this.on_droparea_enter();
+            }
+
             this.nop(e);
         };
 
 
         this.on_exit = function(e) {
-            Element.removeClassName(this.node_id, 'filedrop_over');
-            this.show(this.default_msg);
+            if(this.p.hover_class) {
+                Element.removeClassName(this.node_id, this.p.hover_class);
+            }
+
+            if(this.on_droparea_exit) {
+                this.on_droparea_exit();
+            }
+
             this.nop(e);
         };
 
@@ -279,13 +279,6 @@ var FileDrop = {
             }
         };
         
-        this.status_add_filtered = function(label) {
-            $(this.subtitle_node_id).innerHTML += "<p>Skipped: "+label+"</p>";
-        };
-
-        this.status_add_uploadbar = function(label) {
-            $(this.subtitle_node_id).innerHTML += "<p>Reading: "+label+"</p>";
-        };
 
         this.filter = function(file) {
             var filter = true;
@@ -380,12 +373,12 @@ var FileDrop = {
         };
 
         this.all_uploads_completed = function() {
+            if(this.p.hover_class) {
+                Element.removeClassName(this.node_id, this.p.hover_class);
+            }
             if(this.on_upload_complete) {
                 this.on_upload_complete(this.uploaded_files);
             }
-
-            // TODO remove
-            this.show(['Upload complete!', this.uploaded_files.length+' files were uploaded.'])
         };
 
         this.upload_next_file = function() {
@@ -409,7 +402,6 @@ var FileDrop = {
                     msg = this.filter(file);
 
                     if(msg) {
-                        this.status_add_filtered(msg); // TODO remove
                         this.cur_file_index += 1;
                         file = null;
                         if(this.cur_file_index >= this.files_to_upload.length) {
@@ -598,17 +590,10 @@ var FileDrop = {
             if(this.on_receive_begin) {
                 this.on_receive_begin(files);
             }
-            this.show(["Reading", files.length + " files"]);
             this.files = files;
             this.cur_file_index = 0;
             this.received_files = [];
             this.receive_next_file();
-        };
-
-
-        this.no_files_received = function() {
-            this.show(["No files uploaded!",
-                       "None of the dropped files were accepted."])
         };
 
 
@@ -619,7 +604,7 @@ var FileDrop = {
 
                 if(this.cur_file_index > (this.files.length - 1)) {
                     if(this.received_files.length <= 0) {
-                        this.no_files_received();
+                        this.on_receive_completed([]);
                         return false;
                     }
 
@@ -629,6 +614,10 @@ var FileDrop = {
                     
                     if(this.p.upload_files) {
                         this.start_upload();
+                    } else {
+                        if(this.p.hover_class) {
+                            Element.removeClassName(this.node_id, this.p.hover_class);
+                        }
                     }
                     return true;
                 }
@@ -636,7 +625,6 @@ var FileDrop = {
                 var file = this.files[this.cur_file_index];
                 var msg = this.filter(file);
                 if(msg) {
-                    this.status_add_filtered(msg);
                     this.cur_file_index += 1;
                 } else {
                     got_file = true;
@@ -655,8 +643,6 @@ var FileDrop = {
             if(this.on_receive_file_begin) {
                 this.on_receive_file_begin(file);
             }
-
-            this.status_add_uploadbar(file.name); // TODO remove
 
             this.reader = new FileReader();
             this.reader.onload = this.on_file_received.bindAsEventListener(this);

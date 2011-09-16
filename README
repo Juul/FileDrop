@@ -49,7 +49,10 @@
         FileDrop.create('my_element_id', {
                         url: '/foo/upload',
                         read_files: true,
-                        upload_files: true)
+                        upload_files: true,
+                        client_side_zip: true,
+                        hover_class: 'my_css_class'});
+
 
     The file will be uploaded as if it was uploaded using
     a good old-fashioned:
@@ -69,11 +72,43 @@
     be uploaded to the given url when dropped onto the
     element.
 
-    At least one of these two parameters must be true in
-    order to use the FileDrop library. If one or both
-    of these parameters are specified, then the 
-    unspecified parameters will be set to true if the
-    browser supports them and false if not.
+    At least one of these two parameters (read_files
+    or upload files must be true in order to use the 
+    FileDrop library. If one or both of these parameters 
+    are specified, then the unspecified parameters will 
+    be set to true if the browser supports them and 
+    false if not.
+
+    The client_side_zip parameter specifies whether
+    received zip files should be extracted client side.
+    If this is true, then all zip files will be extracted,
+    discarding directory structure, and the extracted 
+    files will be treated as if they had been received
+    normally. Nested zip files will be extracted and
+    handled in the same way.
+
+    To use client_side_zip, you will need
+    the js-unzip library written by August Lilleaas:
+
+      https://github.com/augustl/js-unzip
+
+    To handle _compressed_ zip files you also need
+    the js-inflate library, written by Masanao Izumo
+    and August Lilleaas:
+
+      https://github.com/augustl/js-inflate/
+
+    These two libraries will allow FileDrop to handle
+    the following zip archive compression methods:
+
+      * No compression: Rarely used.
+      * DEFLATE: The most common zip file compression.
+
+    Note: The current version of FileDrop does not
+          support mime-type detection of the files
+          archived in zip files, which means that
+          you can only filter compressed/archived
+          files by extension, _not_ by mime-type.
 
   Callback API:
 
@@ -81,39 +116,151 @@
 
       var f = FileDrop.create(...);
 
-    The API is documented using commented examples:
+    The callback API is documented using commented examples:
 
     /* 
-       Called when a file is disallowed based on allow or 
-       disallow rules. The rules variable is an array of 
-       the rules that triggered the disallow.
-       An empty array means that the file was disallowed
-       because the default is to disallow and no specific
-       allow rule matched.
+      Called when a file is disallowed based on allow or 
+      disallow rules. The rules variable is an array of 
+      the rules that triggered the disallow.
+      An empty array means that the file was disallowed
+      because the default is to disallow and no specific
+      allow rule matched.
     */
- 
     f.on_disallowed_file = function(file, rules) {
-
       console.log("File " + file.name + " was disallowed based on " + rules.length + " rules");
 
     }
 
     /* 
-       Called when a file is allowed based on allow or 
-       disallow rules. The rules variable is an array of 
-       the rules that triggered the allow.
-       An empty array means that the file was allowed
-       because the default is to allow and no specific
-       disallow rule matched.
+      Called when a file is allowed based on allow or 
+      disallow rules. The rules variable is an array of 
+      the rules that triggered the allow.
+      An empty array means that the file was allowed
+      because the default is to allow and no specific
+      disallow rule matched.
     */
-
     f.on_allowed_file = function(file, rules) {
-
       console.log("File " + file.name + " was allowed based on " + rules.length + " rules");
-
     }
 
-    TODO more API to come.
+    /*
+      Receiving a file (client side) is about to begin
+    */
+    f.on_receive_begin = function(files) {
+      console.log("Some files were dropped! (actually " + files.length + ")");
+    };
+
+    /*
+      A file was successfully received (client side).
+    */
+    f.on_receive_completed = function(files) {
+      console.log("Received files: " + files.length);
+    };
+
+    /*
+      Receiving a file (client side) is about to begin.
+    */
+    f.on_receive_file_begin = function(file) {
+      console.log("Receiving file: " + file);
+    };
+
+    /*
+      Run while file is being received (client side).
+      Use this for a e.g. progress bar updates.
+    */
+    f.on_receive_file_progress = function(file, bytes_received, bytes_total) {
+      console.log("Receive progress for: " + bytes_received + " of " + bytes_total);
+    };  
+
+    /*
+      A file was received (client side) successfully.
+    */
+    f.on_receive_file_completed = function(file) {
+      var str = "Received a file: " + file;
+      if(file.is_archive) {
+        str += ' [archive]';
+      }
+      if(file.parent_archive) {
+        str += ' [from archive: ' + file.parent_archive.name + ']';
+      }
+      console.log(str);
+    };
+
+    /*
+      Upload of files is about to begin.
+    */
+    f.on_upload_begin = function(files) {
+      console.log("Beginning upload of " + files.length + " files");
+    };
+
+    /*
+      Upload of all dropped files has completed.
+    */
+    f.on_upload_complete = function(files) {
+      $('filedrop').innerHTML = "Finished uploading " + files.length + " files.";
+      console.log("All uploads completed");
+    };
+
+    /*
+      Upload of a file is about to begin.
+    */
+    f.on_upload_file_begin = function(file) {
+      console.log("File upload started: " + file.name);
+    };
+
+    /*
+      Run during upload of each file.
+      Use this to update e.g. an upload progress bar.
+    */
+    f.on_upload_file_progress = function(file, bytes_received, bytes_total) {
+      console.log("File upload progress: " + bytes_received + " of " + bytes_total);
+    };
+
+    /*
+      A single file was successfully uploaded.
+    */
+    f.on_upload_file_complete = function(file, bytes_received) {
+      console.log("Uploaded file: " + file.name + " in " + bytes_received + " bytes");
+    };
+
+    /*
+      An error (e.g. a 404) occurred while attempting to upload.
+    */
+    f.on_upload_error = function(http_status, http_response) {
+      console.log("Error with http status " + http_status + " and response: " + http_response);
+    };
+  
+    /*
+      If an in-progress upload is aborted.
+      E.g. the user clicked 'stop' in the browser or hit escape.
+    */
+    f.on_upload_aborted = function() {
+      console.log("Upload aborted.");
+    };
+
+    /*
+      Happens when the compression method used for a file in
+      an archive is not supported.
+    */
+    f.on_decompression_error = function(file, msg) {
+      console.log("Error decompressing file '" + file.name + "' in archive '" + file.parent_archive.name + "': " + msg);
+    };
+
+    /*
+      Files being dragged exit the drop-area.
+      Like onmouseenter when dragging files.
+    */
+    f.on_droparea_enter = function() {
+      console.log("Files are being held over drop-aerea.");
+    };
+
+    /*
+      Files being dragged exit the drop-area.
+      Like onmouseout when dragging files.
+    */
+    f.on_droparea_exit = function() {
+      console.log("Hanging files exited drop-area.");
+    };
 
   Filtering:
       
