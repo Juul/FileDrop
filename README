@@ -62,7 +62,7 @@
         <input type='submit' value='Submit'>
       </form>
    
-    my_element_id is the id of the element to activate
+    my_element_id is the id of the HTML element activate 
     as a file drop-zone.
 
     The read_files parameter specifies that files should
@@ -109,6 +109,58 @@
           archived in zip files, which means that
           you can only filter compressed/archived
           files by extension, _not_ by mime-type.
+
+  Filtering:
+
+    With filtering you can allow or disallow certain
+    types of files from being received and/or uploaded.
+    Filtering works by setting either the allow or
+    disallow parameter when calling create.
+
+    var f = FileDrop.create('filedrop', {
+                          url: '/bar/upload',
+
+                          allow: [{
+                            mime_type: 'image/jpeg',
+                            extension: 'jpg'
+                          },{
+                            extension: 'txt'
+                          }]
+                         });
+
+    If allow is specified, only files matching one or more 
+    of the rules are allowed.
+
+    If disallow is specified, only file matching one or more
+    of the rules are disallowed.
+
+    If no filters are specified then all files are allowed.
+
+    You must never specify both allow and disallow parameters
+    for the same call to create.
+
+    The allow and disallow parameters are both an array of 
+    one or more rules.
+
+    A rule is a hash that looks something lige e.g:
+
+      {mime_type: 'image/jpeg', extension: 'jpg'}
+
+    You can omit either mime_type or extension, but not both.
+
+    If the above rule is used like so:
+
+    FileDrop.create('droparea', {
+
+      allow: [
+        {mime_type: 'image/jpeg', extension: 'jpg'}
+      ]
+    });
+
+    Then only files with the image/jpeg mimetype and the
+    extension 'jpeg' will be allowed.
+
+    Extensions and mimetypes are matched case-insensitive.
 
   Callback API:
 
@@ -262,36 +314,3 @@
       console.log("Hanging files exited drop-area.");
     };
 
-  Filtering:
-      
-    You can specify either an allow or a disallow parameter.
-    You must not specify both.
-    These parameters are both an array of one or more rules.
-
-    If allow is specified, only files matching one or more 
-    of the rules are allowed.
-
-    If disallow is specified, only file matching one or more
-    of the rules are disallowed.
-
-    If not filters are specified, all files are allowed.
-
-    A rule is a hash that looks something lige e.g:
-
-      {mime_type: 'image/jpeg', extension: 'jpg'}
-
-    You can omit either mime_type or extension, but not both.
-
-    If the above rule is used like so:
-
-    FileDrop.create('droparea', {
-
-      allow: [
-        {mime_type: 'image/jpeg', extension: 'jpg'}
-      ]
-    });
-
-    Then only files with the image/jpeg mimetype and the
-    extension 'jpeg' will be allowed.
-
-    Extensions and mimetypes are matched case-insensitive.
