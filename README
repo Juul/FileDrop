@@ -50,8 +50,8 @@
                         url: '/foo/upload',
                         read_files: true,
                         upload_files: true,
-                        client_side_zip: true,
-                        hover_class: 'my_css_class'});
+                        hover_class: 'my_css_class',
+                        client_side_zip: true});
 
 
     The file will be uploaded as if it was uploaded using
@@ -63,7 +63,8 @@
       </form>
    
     my_element_id is the id of the HTML element activate 
-    as a file drop-zone.
+    as a file drop-zone, and is the only required 
+    parameter. All other parameters are optional.
 
     The read_files parameter specifies that files should
     be read into js memory when dropped onto the element.
@@ -78,6 +79,15 @@
     are specified, then the unspecified parameters will 
     be set to true if the browser supports them and 
     false if not.
+
+    The hover_class parameter specifies a CSS class that
+    will be added to the drop-zone element when the
+    cursor hovers over the element while files are being
+    dragged. The CSS class will be removed from the
+    element again when the cursor no longer hovers
+    over the element, or, if the files are dropped,
+    after the file receive, upload or receive+upload
+    has been completed.
 
     The client_side_zip parameter specifies whether
     received zip files should be extracted client side.
