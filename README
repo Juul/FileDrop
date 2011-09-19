@@ -206,14 +206,18 @@
     }
 
     /*
-      Receiving a file (client side) is about to begin
+      Receiving (client side) is about to begin.
+      Called only once per drop.
+      "Some files (one or more) are about to be received."
     */
     f.on_receive_begin = function(files) {
       console.log("Some files were dropped! (actually " + files.length + ")");
     };
 
     /*
-      A file was successfully received (client side).
+      Files were successfully received (client side).
+      Called only once per drop.
+      "All the files that were to be received have now been received."
     */
     f.on_receive_completed = function(files) {
       console.log("Received files: " + files.length);
@@ -227,8 +231,8 @@
     };
 
     /*
-      Run while file is being received (client side).
-      Use this for a e.g. progress bar updates.
+      Called repeatedly while a file is being received (client side).
+      Use this for e.g. progress bar updates.
     */
     f.on_receive_file_progress = function(file, bytes_received, bytes_total) {
       console.log("Receive progress for: " + bytes_received + " of " + bytes_total);
@@ -249,7 +253,8 @@
     };
 
     /*
-      Upload of files is about to begin.
+      Upload of file(s) is about to begin.
+      Called only once per drop.
     */
     f.on_upload_begin = function(files) {
       console.log("Beginning upload of " + files.length + " files");
@@ -257,6 +262,7 @@
 
     /*
       Upload of all dropped files has completed.
+      Called only once per drop
     */
     f.on_upload_complete = function(files) {
       $('filedrop').innerHTML = "Finished uploading " + files.length + " files.";
@@ -271,7 +277,7 @@
     };
 
     /*
-      Run during upload of each file.
+      Called during upload of each file.
       Use this to update e.g. an upload progress bar.
     */
     f.on_upload_file_progress = function(file, bytes_received, bytes_total) {
@@ -309,7 +315,7 @@
     };
 
     /*
-      Files being dragged exit the drop-area.
+      Files being dragged entered the drop-area.
       Like onmouseenter when dragging files.
     */
     f.on_droparea_enter = function() {
@@ -317,10 +323,14 @@
     };
 
     /*
-      Files being dragged exit the drop-area.
+      Files being dragged exited the drop-area.
       Like onmouseout when dragging files.
     */
     f.on_droparea_exit = function() {
       console.log("Hanging files exited drop-area.");
     };
 
+
+    /*
+      TODO add an on_drop callback
+    */
